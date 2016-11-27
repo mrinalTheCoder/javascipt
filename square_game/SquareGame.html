@@ -1,0 +1,163 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+<title>Square Game</title>
+<meta charset="utf-8">
+<style>
+	#myCanvas {
+		border-style: solid;
+		border-width: 3px;
+		border-color: rgb(0, 0, 0);
+	}
+</style>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+</head>
+
+<body>
+<canvas id="myCanvas" width="1000" height="500"></canvas>
+<script>
+	var bars =  new Array();
+	var frameCount = 1;
+	var userPawn = new pawn(50, 240, 20);
+	var crash = false;
+
+	$(document).keypress(function(event) {
+  		var charCode = String.fromCharCode(event.which);
+  		if(charCode == 'w') {
+  			userPawn.goUp();
+  		}
+  		if(charCode == 's') {
+  			userPawn.goDown();
+  		}
+		});
+
+
+	var c = document.getElementById("myCanvas");
+	var ctx = c.getContext("2d");
+	function bar(x, y, width, height) {
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+		this.draw = function() {
+			ctx.fillStyle="#FF0000";
+			ctx.fillRect(this.x, this.y, this.width, this.height);
+			ctx.stroke();
+		}
+		this.clear = function() {
+			ctx.clearRect(this.x, this.y, this.width, this.height);
+			ctx.stroke();
+		}
+		this.redraw = function() {
+			this.clear();
+			this.x = this.x - 1;
+			this.draw();
+		}
+	}
+
+	function background() {
+		if(crash) {
+			return;
+		}
+		var remainder = frameCount % 250;
+		if(frameCount == 1 || remainder == 0) {
+			var rectHeight = Math.floor((Math.random() * 400) + 1);
+			var tempBar = new bar(950, 0, 30, rectHeight);
+			var tempBar2 = new bar(950, rectHeight + 40, 30, 500);
+			bars.push(tempBar);
+			bars.push(tempBar2);
+			tempBar.draw();
+			tempBar2.draw();
+		} else {
+			for(var i = 0; i < bars.length; i++) {
+				bars[i].redraw();
+			}
+		}
+		frameCount++;
+		setTimeout(background, 20);
+	}
+
+	function pawn(x, y, width) {
+		this.x = x;
+		this.y = y;
+		this.width = width;
+
+		this.draw = function() {
+			if(this.isCrashing()) {
+				return;
+			}
+			ctx.fillStyle="#00FF00";
+			ctx.fillRect(this.x, this.y, this.width, this.width);
+			ctx.stroke();
+		}
+		this.goUp = function() {
+			if(crash) {
+				return;
+			}
+			this.clear();
+			this.y = this.y -  7;
+			if(this.y <= 0) {
+				this.y = 0;
+			}
+			this.draw();
+		}
+		this.goDown = function() {
+			if(crash) {
+				return;
+			}
+			this.clear();
+			this.y = this.y + 7;
+			this.checkFloor();
+			this.draw();
+		}
+		this.clear = function() {
+			ctx.clearRect(this.x, this.y, this.width, this.width);
+			ctx.stroke();
+		}
+
+		this.checkFloor = function() {
+			if(this.y >= 480) {
+				this.y = 480;
+			}
+		}
+
+		this.userFall = function() {
+			this.clear();
+			this.y ++;
+			this.checkFloor();
+			this.draw();
+		}
+
+		this.isCrashing = function() {
+			for(var i = 0; i < bars.length; i++) {
+				if(this.x + this.width < bars[i].x || this.x > bars[i].x + bars[i].width || this.y > bars[i].y + bars[i].height || this.y + this.width < bars[i].y) {
+					crash = false;
+				} else {
+					crash = true;
+					console.log(crash);
+					return crash;
+				}
+			}
+			return crash;
+		}
+
+	}
+
+	function gravity() {
+		if(crash) {
+			return;
+		}
+		userPawn.userFall();
+		setTimeout(gravity, 100);
+	}
+
+	function playGame() {
+		background();
+		gravity();
+	}
+
+	playGame();
+</script>
+</body>
+</html>
