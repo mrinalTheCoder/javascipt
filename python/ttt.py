@@ -22,7 +22,7 @@ def user_input():
 
 def play_move(x, y, win=False):
     board[x][y] = "1"
-    print "my_move:"
+    print "my move:"
     print_board()
     counter = 0
     for x in range(3):
